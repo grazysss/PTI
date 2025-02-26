@@ -11,48 +11,79 @@ console = Console()
 
 ficha = []
 
-def consultarIA(ficha):
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents="""
-        Gere uma tabela em formato CSV de 5 dias de treinamento.
-        Gere uma tabela CSV com um programa de treinamento de força e resistência para 5 dias, incluindo exercícios, repetições, séries e instruções detalhadas.
-        Somente a tabela, sem comentários ou instruções adicionais.
-        """,
-    )
-    print(response.text)
+def inicio(ficha):
+    console.print('[bold blue]Seja bem vindo ao sistema de armazenamento de treinos![/bold blue]')
+    verificar_conta(ficha)
 
-def usuario(ficha):
-    print('Seja bem vindo ao sistema de armazenamento de treinos!')
-    def verificar_conta():
-        exist = input('Já possui conta aqui? (S/N): ')
+def verificar_conta(ficha):
+    exist = input('Já possui conta aqui? (S/N): ').strip().upper()
+
+    if exist == 'S':
+        entrar_conta(ficha)
+    else:
+        cadastrar_conta(ficha)
+            
+def cadastrar_conta(ficha):
+    pergunta = input('Deseja criar sua conta? (S/N): ')
+    if pergunta == 'S':
+        nome = input('Nome: ')
+        sobrenome = input('Sobrenome: ')
+        social = input('Como deseja ser chamado? ')
         validado = False
-        if exist == 'S':
+        while not validado:
+            print('')
             email = input('Insira seu EMAIL:\n')
-            senha = input('Insira sua senha:\n')
-            print('Você fez seu login!')
-            menu(ficha)
-        else:
-            pergunta = input('Deseja criar sua conta? ')
-            if pergunta == 'S':
-                nome = input('Nome: ')
-                sobrenome = input('Sobrenome: ')
-                social = input('Como deseja ser chamado? ')
-                while validado == False:
-                    email = input('Insira seu EMAIL:')
-                    if '@gmail.com' or '@hotmail.com' or '@outlook.com' in email:
-                        print('Email válido!')
-                        validado = True
-                    else:
-                        print('Email inválido!')
-                        validado = False
-                    
+            if '@gmail.com' in email or '@hotmail.com' in email or '@outlook.com' in email:
+                print('Email válido!')
+                validado = True
+            else:
+                print('Email inválido!')
+                validado = False
         if validado:
-            senha = input('Insira sua senha:')
-            print('Conta criada com sucesso!')
+            senha = input('Insira sua senha:\n')
             with open ('usuarios.csv', 'a') as arquivo:
                 arquivo.write(f'{nome};{sobrenome};{social};{email};{senha}\n')
+            with open ('usuarios.csv', 'r') as arquivo:
+                usuarios = arquivo.readlines()
+
+            while True:
+                confirmar_senha = input('Confirme sua senha:\n')
+                for linha in usuarios:
+                    dados = linha.strip().split(';')
+                if confirmar_senha in dados[4]:
+                    print('Conta criada com sucesso!')
+                    print('')
+                    break
+                else:
+                    print('Senha inválida!')
+            menu(ficha)
+
+def entrar_conta(ficha):
+    email = input('Insira seu EMAIL:\n')
+
+    try:
+        if '@gmail.com' in email or '@hotmail.com' in email or '@outlook.com' in email:
+            with open('usuarios.csv', 'r') as arquivo:
+                usuarios = arquivo.readlines()
+        else:
+            print('Email inválido!')
+    except FileNotFoundError:
+        print('Nenhum usuário cadastrado ainda.')
+        cadastrar_conta(ficha)
+        return
+    
+    for linha in usuarios:
+        dados = linha.strip().split(';')
+        if dados[3] == email:
+            senha = input('Insira sua senha:\n')
+            if dados[4] == senha:
+                print('Você fez seu login com sucesso!')
                 menu(ficha)
+                return
+            else:
+                print('Senha incorreta. Tente novamente.')
+                return 
+    print('Email inválido! Insira novamente.')
 
 def menu(ficha):
     console.print('[bold red]Planejamento de Treinos Inteligente[/bold red]')
@@ -73,20 +104,24 @@ def menu(ficha):
     def cadastrar(ficha):
         print('Cadastrar Dados')
         exercicio = input('Nome do Exercício: ')
+
         pergunta = input('Deseja adicionar Séries e Repetições? (S/N) ')
         if pergunta == 'S':
             series = input('Número de Séries: ')
             repeticoes = input('Número de Repetições: ')
+
             pergunta = input('Deseja adicionar Carga e Observações? (S/N) ')
             if pergunta == 'S':
                 carga = input('Carga: ')
                 observacoes = input('Observações: ')
-                ficha.append([exercicio, series, repeticoes, carga, observacoes])
 
+                ficha.append([exercicio, series, repeticoes, carga, observacoes])
                 print('Exercício cadastrado com sucesso!')
+
             else:
                 ficha.append([exercicio, series, repeticoes, 'x', 'x'])
                 print('Exercício cadastrado com sucesso!')
+    
         else:
             pergunta = input('Deseja adicionar Carga e Observações? (S/N) ')
             if pergunta == 'S':
@@ -94,6 +129,7 @@ def menu(ficha):
                 observacoes = input('Observações: ')
                 ficha.append([exercicio, 'x','x', carga, observacoes])
                 print('Exercício cadastrado com sucesso!')
+    
             else:
                 ficha.append([exercicio, 'x','x', 'x', 'x'])
                 print('Exercício cadastrado com sucesso!')
@@ -139,6 +175,17 @@ def menu(ficha):
         arquivo.close()
         print('Ficha de treino salva com sucesso!')
 
+    def consultarIA(ficha):
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents="""
+            Gere uma tabela em formato CSV de 5 dias de treinamento.
+            Gere uma tabela CSV com um programa de treinamento de força e resistência para 5 dias, incluindo exercícios, repetições, séries e instruções detalhadas.
+            Somente a tabela, sem comentários ou instruções adicionais.
+            """,
+        )
+        print(response.text)
+
     while True:
         option = int(input('Insira uma opção: '))
         if option == 1:
@@ -164,7 +211,7 @@ def menu(ficha):
             print('')
             break
         elif option == 8:
-            print('[bold red]Você saiu do sistema![/bold red]')
+            console.print('[bold red]Você saiu do sistema![/bold red]')
             break
 
-usuario(ficha)
+inicio(ficha)
