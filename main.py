@@ -10,39 +10,42 @@ client = genai.Client(api_key= key.API_KEY)
 console = Console()
 
 ficha = []
-response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    contents="""
-    Gere uma tabela em formato CSV de 5 dias de treinamento.
-    Gere uma tabela CSV com um programa de treinamento de força e resistência para 5 dias, incluindo exercícios, repetições, séries e instruções detalhadas.
-    Somente a tabela, sem comentários ou instruções adicionais.
-    """,
-)
-print(response.text)
+
+def consultarIA(ficha):
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents="""
+        Gere uma tabela em formato CSV de 5 dias de treinamento.
+        Gere uma tabela CSV com um programa de treinamento de força e resistência para 5 dias, incluindo exercícios, repetições, séries e instruções detalhadas.
+        Somente a tabela, sem comentários ou instruções adicionais.
+        """,
+    )
+    print(response.text)
 
 def usuario(ficha):
     print('Seja bem vindo ao sistema de armazenamento de treinos!')
-    exist = input('Já possui conta aqui? (S/N): ')
-    validado = False
-    if exist == 'S':
-        email = input('Insira seu EMAIL:\n')
-        senha = input('Insira sua senha:\n')
-        print('Você fez seu login!')
-        menu(ficha)
-    else:
-        pergunta = input('Deseja criar sua conta? ')
-        if pergunta == 'S':
-            nome = input('Nome: ')
-            sobrenome = input('Sobrenome: ')
-            social = input('Como deseja ser chamado? ')
-            while validado == False:
-                email = input('Insira seu EMAIL:')
-                if '@gmail.com' or '@hotmail.com' or '@outlook.com' in email:
-                    print('Email válido!')
-                    validado = True
-                else:
-                    print('Email inválido!')
-                    validado = False
+    def verificar_conta():
+        exist = input('Já possui conta aqui? (S/N): ')
+        validado = False
+        if exist == 'S':
+            email = input('Insira seu EMAIL:\n')
+            senha = input('Insira sua senha:\n')
+            print('Você fez seu login!')
+            menu(ficha)
+        else:
+            pergunta = input('Deseja criar sua conta? ')
+            if pergunta == 'S':
+                nome = input('Nome: ')
+                sobrenome = input('Sobrenome: ')
+                social = input('Como deseja ser chamado? ')
+                while validado == False:
+                    email = input('Insira seu EMAIL:')
+                    if '@gmail.com' or '@hotmail.com' or '@outlook.com' in email:
+                        print('Email válido!')
+                        validado = True
+                    else:
+                        print('Email inválido!')
+                        validado = False
                     
         if validado:
             senha = input('Insira sua senha:')
@@ -156,10 +159,10 @@ def menu(ficha):
         elif option == 6:
             salvar(ficha)
             print('')
-        # elif option == 7:
-        #     consultarIA(ficha)
-        #     print('')
-        #     break
+        elif option == 7:
+            consultarIA(ficha)
+            print('')
+            break
         elif option == 8:
             print('[bold red]Você saiu do sistema![/bold red]')
             break
