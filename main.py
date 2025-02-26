@@ -1,10 +1,9 @@
 # Planejamento de Treinos Inteligente com IA (PTI)
-
-import streamlit as st
 from rich.console import Console
+from rich.table import Table
 import key
 from google import genai
-import time
+import os
 
 client = genai.Client(api_key= key.API_KEY)
 console = Console()
@@ -60,7 +59,7 @@ def cadastrar_conta(ficha):
 
 def entrar_conta(ficha):
     email = input('Insira seu EMAIL:\n')
-
+    
     try:
         if '@gmail.com' in email or '@hotmail.com' in email or '@outlook.com' in email:
             with open('usuarios.csv', 'r') as arquivo:
@@ -94,12 +93,27 @@ def menu(ficha):
     print('5. Pesquisar Dados')
     print('6. Salvar a Ficha do Treino')
     print('7. Consultar IA')
-    print('8. Sair')
+    print('8. Limpar Terminal')
+    print('9. Sair')
     print('')
 
     def exibir(ficha):
-        print('Ficha de Treino:')
-        print(ficha)
+        if not ficha:
+            console.print("[bold yellow]A ficha de treino está vazia![/bold yellow]")
+            return
+        
+        tabela = Table(title="Ficha de Treino")
+
+        tabela.add_column("Exercício", style="magenta")
+        tabela.add_column("Séries", style="blue", justify="center")
+        tabela.add_column("Repetições", style="green", justify="center")
+        tabela.add_column("Carga", style="yellow", justify="center")
+        tabela.add_column("Observações", style="cyan")
+
+        for linha in ficha:
+            tabela.add_row(linha)
+
+        console.print(tabela)
     
     def cadastrar(ficha):
         print('Cadastrar Dados')
@@ -135,7 +149,7 @@ def menu(ficha):
                 print('Exercício cadastrado com sucesso!')
 
     def editar(ficha):
-        print('Editar Dados:')
+        print('Editar Dados')
         exercicio = input('Nome do Exercício: ')
         for i in range(len(ficha)):
             if ficha[i][0] == exercicio:
@@ -149,7 +163,7 @@ def menu(ficha):
         print('Exercício não encontrado!')
 
     def remover(ficha):
-        print('Remover Exercício:')
+        print('Remover Exercício')
         exercicio = input('Nome do Exercício: ')
         for i in range(len(ficha)):
             if ficha[i][0] == exercicio:
@@ -159,7 +173,7 @@ def menu(ficha):
         print('Exercício não encontrado!')
 
     def pesquisar(ficha):
-        print('Pesquisar Dados:')
+        print('Pesquisar Dados')
         exercicio = input('Nome do Exercício: ')
         for i in range(len(ficha)):
             if ficha[i][0] == exercicio:
@@ -167,8 +181,11 @@ def menu(ficha):
                 return
         print('Exercício não encontrado!')
 
+    def limpar(ficha):
+        os.system('cls')
+
     def salvar(ficha):
-        print('Salvar a Ficha do Treino:')
+        print('Salvar a Ficha do Treino')
         arquivo = open('ficha_treino.csv', 'w')
         for exercicio in ficha:
             arquivo.write(f'{exercicio[0]};{exercicio[1]};{exercicio[2]};{exercicio[3]};{exercicio[4]}\n')
@@ -180,11 +197,28 @@ def menu(ficha):
             model="gemini-2.0-flash",
             contents="""
             Gere uma tabela em formato CSV de 5 dias de treinamento.
-            Gere uma tabela CSV com um programa de treinamento de força e resistência para 5 dias, incluindo exercícios, repetições, séries e instruções detalhadas.
-            Somente a tabela, sem comentários ou instruções adicionais.
+            A tabela deve conter colunas: Dia (segunda/terça/quarta), Exercício, Repetições, Séries, Carga (moderada).
+            Formato estritamente CSV, sem explicações ou textos adicionais.
             """,
         )
-        print(response.text)
+
+        tabela = Table(title='Plano de Treino - Força e Resistência')
+
+        tabela.add_column('Dia', style='cyan', justify='center')
+        tabela.add_column('Exercício', style='magenta')
+        tabela.add_column('Repetições', style='green', justify='center')
+        tabela.add_column('Séries', style='blue', justify='center')
+        tabela.add_column('Carga', style='yellow', justify='center')
+
+        csv_ia = response.text
+
+        linhas = csv_ia.split('\n')[1:]
+
+        for linha in linhas:
+            colunas = linha.split(',')
+            tabela.add_row(*colunas)
+
+        console.print(tabela)
 
     while True:
         option = int(input('Insira uma opção: '))
@@ -211,6 +245,9 @@ def menu(ficha):
             print('')
             break
         elif option == 8:
+            limpar(ficha)
+            print('')
+        elif option == 9:
             console.print('[bold red]Você saiu do sistema![/bold red]')
             break
 
