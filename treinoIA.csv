@@ -30,3 +30,18 @@ Sexta,Avanço,10 (cada perna),3,Moderada
 Sexta,Panturrilha no Smith,15,3,Moderada
 ```
 
+loucoDia,Exercício,Repetições,Séries,Carga
+Segunda,Agachamento,10,3,Moderada
+Segunda,Supino,8,3,Moderada
+Segunda,Remada Curvada,12,3,Moderada
+Terça,Desenvolvimento Militar,8,3,Moderada
+Terça,Elevação Lateral,15,3,Moderada
+Terça,Rosca Direta,10,3,Moderada
+Quarta,Descanso,-,-,-
+Quinta,Leg Press,12,3,Moderada
+Quinta,Flexora,15,3,Moderada
+Quinta,Extensora,15,3,Moderada
+Sexta,Puxada Alta,10,3,Moderada
+Sexta,Remada Baixa,12,3,Moderada
+Sexta,Tríceps Francês,10,3,Moderada
+

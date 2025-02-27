@@ -59,7 +59,7 @@ def cadastrar_conta(ficha):
 
 def entrar_conta(ficha):
     while True:
-        email = input('Insira seu EMAIL:\n')
+        email = input('Insira seu EMAIL: ')
         
         if not ('@gmail.com' in email or '@hotmail.com' in email or '@outlook.com' in email):
             print('Email inválido!')
@@ -71,29 +71,29 @@ def entrar_conta(ficha):
         except FileNotFoundError:
             print('Nenhum usuário cadastrado ainda.')
             cadastrar_conta(ficha)
-            break
+            return
         
-        usuario_encontrado = False
+        usuario_encontrado = None
         
         for linha in usuarios:
             dados = linha.strip().split(';')
-            
             if dados[3] == email:
-                usuario_encontrado = True
-                while True:
-                    senha = input('Insira sua senha:\n')
-                    
-                    if dados[4] == senha:
-                        print('Você fez seu login com sucesso!')
-                        print('')
-                        menu(ficha)
-                        break
-                    else:
-                        print('Senha incorreta. Tente novamente.')
+                usuario_encontrado = dados
                 break
         
-        if not usuario_encontrado:
+        if usuario_encontrado:
+            while True:
+                senha = input('Insira sua senha: ')
+                if usuario_encontrado[4] == senha:
+                    print('Você fez seu login com sucesso!')
+                    print('')
+                    menu(ficha)
+                    return
+                else:
+                    print('Senha incorreta. Tente novamente.')
+        else:
             print('Email não cadastrado.')
+        menu(ficha)
 
 def menu(ficha):
     verificar = input('Já possui uma ficha? (S/N): ').strip().upper()
@@ -129,7 +129,7 @@ def menu(ficha):
         tabela.add_column("Observações", style="cyan")
 
         for linha in ficha:
-            tabela.add_row(linha)
+            tabela.add_row(*linha)
 
         console.print(tabela)
     
@@ -175,25 +175,24 @@ def menu(ficha):
             return
 
         for i in range(len(ficha)):
-            if ficha[i][0].lower() == exercicio.lower():
-                if pergunta == 'Exercício':
-                    novo_valor = input('Novo nome do Exercício: ').strip()
-                    ficha[i][0] = novo_valor
-                elif pergunta == 'Séries':
-                    novo_valor = input('Novo número de Séries: ').strip()
-                    ficha[i][1] = novo_valor
-                elif pergunta == 'Repetições':
-                    novo_valor = input('Novo número de Repetições: ').strip()
-                    ficha[i][2] = novo_valor
-                elif pergunta == 'Carga':
-                    novo_valor = input('Nova Carga: ').strip()
-                    ficha[i][3] = novo_valor
-                elif pergunta == 'Observação':
-                    novo_valor = input('Nova Observação: ').strip()
-                    ficha[i][4] = novo_valor
+            if pergunta == 'Exercício':
+                novo_valor = input('Novo nome do Exercício: ').strip()
+                ficha[i][0] = novo_valor
+            elif pergunta == 'Séries':
+                novo_valor = input('Novo número de Séries: ').strip()
+                ficha[i][1] = novo_valor
+            elif pergunta == 'Repetições':
+                novo_valor = input('Novo número de Repetições: ').strip()
+                ficha[i][2] = novo_valor
+            elif pergunta == 'Carga':
+                novo_valor = input('Nova Carga: ').strip()
+                ficha[i][3] = novo_valor
+            elif pergunta == 'Observação':
+                novo_valor = input('Nova Observação: ').strip()
+                ficha[i][4] = novo_valor
 
-                print(f'{pergunta} editado(a) com sucesso!')
-                return
+            print(f'{pergunta} editado(a) com sucesso!')
+            return
 
         print('Exercício não encontrado!')
 
@@ -230,6 +229,11 @@ def menu(ficha):
                 for exercicio in ficha:
                     arquivo_ft.write(f'{dados[2]};{exercicio[0]};{exercicio[1]};{exercicio[2]};{exercicio[3]};{exercicio[4]}\n')
         print('Ficha de treino salva com sucesso!')
+
+        with open ('ficha_treino.csv', 'r') as arquivo_t:
+            treino = arquivo_t.readlines()
+            print(f'{treino[len(treino) - 1]}')
+            print('')
 
     def consultarIA(ficha):
         response = client.models.generate_content(
@@ -302,5 +306,5 @@ def menu(ficha):
         elif option == 9:
             console.print('[bold red]Você saiu do sistema![/bold red]')
             break
-
+        
 inicio(ficha)
