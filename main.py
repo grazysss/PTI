@@ -11,7 +11,7 @@ console = Console()
 ficha = []
 
 def inicio(ficha):
-    console.print('[bold blue]Seja bem vindo ao sistema de armazenamento de treinos![/bold blue]')
+    console.print('[bold red]Seja bem vindo ao sistema de armazenamento de treinos![/bold red]')
     verificar_conta(ficha)
 
 def verificar_conta(ficha):
@@ -58,33 +58,49 @@ def cadastrar_conta(ficha):
             menu(ficha)
 
 def entrar_conta(ficha):
-    email = input('Insira seu EMAIL:\n')
-    
-    try:
-        if '@gmail.com' in email or '@hotmail.com' in email or '@outlook.com' in email:
+    while True:
+        email = input('Insira seu EMAIL:\n')
+        
+        if not ('@gmail.com' in email or '@hotmail.com' in email or '@outlook.com' in email):
+            print('Email inválido!')
+            continue
+        
+        try:
             with open('usuarios.csv', 'r') as arquivo:
                 usuarios = arquivo.readlines()
-        else:
-            print('Email inválido!')
-    except FileNotFoundError:
-        print('Nenhum usuário cadastrado ainda.')
-        cadastrar_conta(ficha)
-        return
-    
-    for linha in usuarios:
-        dados = linha.strip().split(';')
-        if dados[3] == email:
-            senha = input('Insira sua senha:\n')
-            if dados[4] == senha:
-                print('Você fez seu login com sucesso!')
-                menu(ficha)
-                return
-            else:
-                print('Senha incorreta. Tente novamente.')
-                return 
-    print('Email inválido! Insira novamente.')
+        except FileNotFoundError:
+            print('Nenhum usuário cadastrado ainda.')
+            cadastrar_conta(ficha)
+            break
+        
+        usuario_encontrado = False
+        
+        for linha in usuarios:
+            dados = linha.strip().split(';')
+            
+            if dados[3] == email:
+                usuario_encontrado = True
+                while True:
+                    senha = input('Insira sua senha:\n')
+                    
+                    if dados[4] == senha:
+                        print('Você fez seu login com sucesso!')
+                        print('')
+                        menu(ficha)
+                        break
+                    else:
+                        print('Senha incorreta. Tente novamente.')
+                break
+        
+        if not usuario_encontrado:
+            print('Email não cadastrado.')
 
 def menu(ficha):
+    verificar = input('Já possui uma ficha? (S/N): ').strip().upper()
+    if verificar != 'S':
+        console.print("[bold yellow]A ficha de treino está vazia![/bold yellow]")
+        print('Cadastre a sua!')
+
     def info(ficha):
         console.print('[bold red]Planejamento de Treinos Inteligente[/bold red]')
         print('1. Exibir Ficha de Treino')
@@ -100,30 +116,9 @@ def menu(ficha):
     info(ficha)
 
     def exibir(ficha):
-        verificar = input('Já possui uma ficha? (S/N): ').strip().upper()
-        if verificar != 'S':
+        if not ficha:
             console.print("[bold yellow]A ficha de treino está vazia![/bold yellow]")
             return
-        
-        with open('usuarios.csv', 'r', encoding='utf-8') as arquivo_d:
-            usuarios = [linha.strip().split(';') for linha in arquivo_d.readlines()]
-        
-        with open('ficha_treino.csv', 'r', encoding='utf-8') as arquivo_ft:
-            treino = [linha.strip().split(';') for linha in arquivo_ft.readlines()]
-            
-        for usuario in usuarios:
-            nome_usuario = usuario[2] 
-        print(f"\nFicha de Treino para {nome_usuario}:")
-        encontrou = False
-        for exercicio in treino:
-            if exercicio[0] == nome_usuario: 
-                print(f"{exercicio[1]} - {exercicio[2]} séries de {exercicio[3]} repetições - {exercicio[4]} - Descanso: {exercicio[5]}")
-                encontrou = True
-            
-            if not encontrou:
-                print("Nenhuma ficha encontrada para este usuário.")
-        print("\nExibição concluída!")
-    
         
         tabela = Table(title="Ficha de Treino")
 
@@ -134,7 +129,7 @@ def menu(ficha):
         tabela.add_column("Observações", style="cyan")
 
         for linha in ficha:
-            tabela.add_row(*linha)
+            tabela.add_row(linha)
 
         console.print(tabela)
     
@@ -173,17 +168,34 @@ def menu(ficha):
 
     def editar(ficha):
         print('Editar Dados')
-        exercicio = input('Nome do Exercício: ')
+        pergunta = input('Qual deseja editar? (Exercício, Séries, Repetições, Carga ou Observação): ').strip().capitalize()
+
+        if pergunta not in ['Exercício', 'Séries', 'Repetições', 'Carga', 'Observação']:
+            print('Opção inválida!')
+            return
+
         for i in range(len(ficha)):
-            if ficha[i][0] == exercicio:
-                series = input('Número de Séries: ')
-                repeticoes = input('Número de Repetições: ')
-                carga = input('Carga: ')
-                observacoes = input('Observações: ')
-                ficha[i] = [exercicio, series, repeticoes, carga, observacoes]
-                print('Exercício editado com sucesso!')
+            if ficha[i][0].lower() == exercicio.lower():
+                if pergunta == 'Exercício':
+                    novo_valor = input('Novo nome do Exercício: ').strip()
+                    ficha[i][0] = novo_valor
+                elif pergunta == 'Séries':
+                    novo_valor = input('Novo número de Séries: ').strip()
+                    ficha[i][1] = novo_valor
+                elif pergunta == 'Repetições':
+                    novo_valor = input('Novo número de Repetições: ').strip()
+                    ficha[i][2] = novo_valor
+                elif pergunta == 'Carga':
+                    novo_valor = input('Nova Carga: ').strip()
+                    ficha[i][3] = novo_valor
+                elif pergunta == 'Observação':
+                    novo_valor = input('Nova Observação: ').strip()
+                    ficha[i][4] = novo_valor
+
+                print(f'{pergunta} editado(a) com sucesso!')
                 return
-        print('Exercício não encontrado!')
+
+        print('Exercício não encontrado!')
 
     def remover(ficha):
         print('Remover Exercício')
