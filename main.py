@@ -85,22 +85,45 @@ def entrar_conta(ficha):
     print('Email inválido! Insira novamente.')
 
 def menu(ficha):
-    console.print('[bold red]Planejamento de Treinos Inteligente[/bold red]')
-    print('1. Exibir Ficha de Treino')
-    print('2. Cadastrar Dados')
-    print('3. Editar Dados')
-    print('4. Remover Exercício')
-    print('5. Pesquisar Dados')
-    print('6. Salvar a Ficha do Treino')
-    print('7. Consultar IA')
-    print('8. Limpar Terminal')
-    print('9. Sair')
-    print('')
+    def info(ficha):
+        console.print('[bold red]Planejamento de Treinos Inteligente[/bold red]')
+        print('1. Exibir Ficha de Treino')
+        print('2. Cadastrar Dados')
+        print('3. Editar Dados')
+        print('4. Remover Exercício')
+        print('5. Pesquisar Dados')
+        print('6. Salvar a Ficha do Treino')
+        print('7. Consultar IA')
+        print('8. Limpar Terminal')
+        print('9. Sair')
+        print('')
+    info(ficha)
 
     def exibir(ficha):
-        if not ficha:
+        verificar = input('Já possui uma ficha? (S/N): ').strip().upper()
+        if verificar != 'S':
             console.print("[bold yellow]A ficha de treino está vazia![/bold yellow]")
             return
+        
+        with open('usuarios.csv', 'r', encoding='utf-8') as arquivo_d:
+            usuarios = [linha.strip().split(';') for linha in arquivo_d.readlines()]
+        
+        with open('ficha_treino.csv', 'r', encoding='utf-8') as arquivo_ft:
+            treino = [linha.strip().split(';') for linha in arquivo_ft.readlines()]
+            
+        for usuario in usuarios:
+            nome_usuario = usuario[2] 
+        print(f"\nFicha de Treino para {nome_usuario}:")
+        encontrou = False
+        for exercicio in treino:
+            if exercicio[0] == nome_usuario: 
+                print(f"{exercicio[1]} - {exercicio[2]} séries de {exercicio[3]} repetições - {exercicio[4]} - Descanso: {exercicio[5]}")
+                encontrou = True
+            
+            if not encontrou:
+                print("Nenhuma ficha encontrada para este usuário.")
+        print("\nExibição concluída!")
+    
         
         tabela = Table(title="Ficha de Treino")
 
@@ -111,7 +134,7 @@ def menu(ficha):
         tabela.add_column("Observações", style="cyan")
 
         for linha in ficha:
-            tabela.add_row(linha)
+            tabela.add_row(*linha)
 
         console.print(tabela)
     
@@ -183,13 +206,17 @@ def menu(ficha):
 
     def limpar(ficha):
         os.system('cls')
+        info(ficha)
 
     def salvar(ficha):
         print('Salvar a Ficha do Treino')
-        arquivo = open('ficha_treino.csv', 'w')
-        for exercicio in ficha:
-            arquivo.write(f'{exercicio[0]};{exercicio[1]};{exercicio[2]};{exercicio[3]};{exercicio[4]}\n')
-        arquivo.close()
+        with open ('ficha_treino.csv', 'a') as arquivo_ft:
+            with open ('usuarios.csv', 'r') as arquivo_d:
+                usuarios = arquivo_d.readlines()
+            for linha in usuarios:
+                dados = linha.strip().split(';')
+                for exercicio in ficha:
+                    arquivo_ft.write(f'{dados[2]};{exercicio[0]};{exercicio[1]};{exercicio[2]};{exercicio[3]};{exercicio[4]}\n')
         print('Ficha de treino salva com sucesso!')
 
     def consultarIA(ficha):
@@ -204,11 +231,11 @@ def menu(ficha):
 
         tabela = Table(title='Plano de Treino - Força e Resistência')
 
-        tabela.add_column('Dia', style='cyan', justify='center')
-        tabela.add_column('Exercício', style='magenta')
-        tabela.add_column('Repetições', style='green', justify='center')
-        tabela.add_column('Séries', style='blue', justify='center')
-        tabela.add_column('Carga', style='yellow', justify='center')
+        tabela.add_column('Dia', style='white', justify='center')
+        tabela.add_column('Exercício', style='red')
+        tabela.add_column('Repetições', style='white', justify='center')
+        tabela.add_column('Séries', style='white', justify='center')
+        tabela.add_column('Carga', style='white', justify='center')
 
         csv_ia = response.text
 
@@ -219,6 +246,20 @@ def menu(ficha):
             tabela.add_row(*colunas)
 
         console.print(tabela)
+
+        with open ("treinoIA.csv", "a", encoding="utf-8") as arquivo:
+            with open ('usuarios.csv', 'r') as arquivo_d:
+                usuarios = arquivo_d.readlines()
+            for linha in usuarios:
+                dados = linha.strip().split(';')
+            arquivo.write(f'{dados[2]}')
+            arquivo.write("Dia,Exercício,Repetições,Séries,Carga\n") 
+
+            for linha in linhas:
+                arquivo.write(linha + "\n")
+
+            arquivo.write('')
+        print("Plano de treino salvo em treinoIA.csv com sucesso!")
 
     while True:
         option = int(input('Insira uma opção: '))
@@ -243,7 +284,6 @@ def menu(ficha):
         elif option == 7:
             consultarIA(ficha)
             print('')
-            break
         elif option == 8:
             limpar(ficha)
             print('')
